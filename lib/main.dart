@@ -1,17 +1,14 @@
 import 'dart:async';
 import 'dart:math';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:to_do/models/db.dart';
-
 import 'package:intl/intl.dart';
-
-// import 'package:google_fonts/google_fonts.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'constants.dart' as Constants;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +17,8 @@ Future<void> main() async {
 
   Hive.registerAdapter(DataBaseAdapter());
   await Hive.openBox<DataBase>('database');
+  // var a = await Hive.openBox<DataBase>('database');
+  // a.clear();
 
   runApp(const MyApp());
 }
@@ -154,9 +153,9 @@ class _MyHomePageState extends State<MyHomePage> {
     final now = new DateTime.now();
     datetoday = DateFormat.yMd().format(now);
     List datesplit = datetoday.split('/');
-    date = datesplit[0];
-    month = datesplit[1];
-    year = datesplit[2];
+    date = int.parse(datesplit[0]);
+    month = int.parse(datesplit[1]);
+    year = int.parse(datesplit[2]);
 
     fetch_db();
 
@@ -164,13 +163,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void fetch_db() {
-    print('fetching db my man');
-
     setState(() {
-      db_list = db.values
-          // .where((element) => element.edited == false)
-          .toList()
-          .cast<DataBase>();
+      db_list = db.values.toList().cast<DataBase>();
 
       list_count = db_list.length;
 
@@ -180,9 +174,6 @@ class _MyHomePageState extends State<MyHomePage> {
         if (db_list[i].edited == true) {
           // db.delete(db_list[i]);
           indexes_to_del.add(i);
-          print(i);
-          print(db_list[i].title);
-          print(db_list[i].edited);
         }
       }
 
@@ -191,185 +182,171 @@ class _MyHomePageState extends State<MyHomePage> {
         // list_count -= 1;
       }
 
-      // db_list = db.values
-      //     // .where((element) => element.edited == false)
-      //     .toList()
-      //     .cast<DataBase>();
-
-      // list_count = db_list.length;
-
       List<DataBase> db_list_editing = db.values
           .where((element) => element.edited == true)
           .toList()
           .cast<DataBase>();
 
-      List<DataBase> db_list_1_1 = db.values
-          .where((element) =>
-              element.level == 0 &&
-              element.edited == false &&
-              element.check == false)
-          .toList()
-          .cast<DataBase>();
-      List<DataBase> db_list_1_2 = db.values
-          .where((element) =>
-              element.level == 0 &&
-              element.edited == false &&
-              element.check == true)
-          .toList()
-          .cast<DataBase>();
-      List<DataBase> db_list_2_1 = db.values
-          .where((element) =>
-              element.level == 1 &&
-              element.edited == false &&
-              element.check == false)
-          .toList()
-          .cast<DataBase>();
-      List<DataBase> db_list_2_2 = db.values
-          .where((element) =>
-              element.level == 1 &&
-              element.edited == false &&
-              element.check == true)
-          .toList()
-          .cast<DataBase>();
-      List<DataBase> db_list_3_1 = db.values
-          .where((element) =>
-              element.level == 2 &&
-              element.edited == false &&
-              element.check == false)
-          .toList()
-          .cast<DataBase>();
-      List<DataBase> db_list_3_2 = db.values
-          .where((element) =>
-              element.level == 2 &&
-              element.edited == false &&
-              element.check == true)
+      List<DataBase> db_list_nonediting = db.values
+          .where((element) => element.edited == false)
           .toList()
           .cast<DataBase>();
 
-      db_list_1_1.sort((a, b) {
-        return a.title.compareTo(b.title);
-      });
-      db_list_1_2.sort((a, b) {
-        return a.title.compareTo(b.title);
-      });
-      db_list_2_1.sort((a, b) {
-        return a.title.compareTo(b.title);
-      });
-      db_list_2_2.sort((a, b) {
-        return a.title.compareTo(b.title);
-      });
+      // List<DataBase> db_list_1_2 = db.values
+      //     .where((element) =>
+      //         element.level == 0 &&
+      //         element.edited == false &&
+      //         element.check == true)
+      //     .toList()
+      //     .cast<DataBase>();
+      // List<DataBase> db_list_2_1 = db.values
+      //     .where((element) =>
+      //         element.level == 1 &&
+      //         element.edited == false &&
+      //         element.check == false)
+      //     .toList()
+      //     .cast<DataBase>();
+      // List<DataBase> db_list_2_2 = db.values
+      //     .where((element) =>
+      //         element.level == 1 &&
+      //         element.edited == false &&
+      //         element.check == true)
+      //     .toList()
+      //     .cast<DataBase>();
+      // List<DataBase> db_list_3_1 = db.values
+      //     .where((element) =>
+      //         element.level == 2 &&
+      //         element.edited == false &&
+      //         element.check == false)
+      //     .toList()
+      //     .cast<DataBase>();
+      // List<DataBase> db_list_3_2 = db.values
+      //     .where((element) =>
+      //         element.level == 2 &&
+      //         element.edited == false &&
+      //         element.check == true)
+      //     .toList()
+      //     .cast<DataBase>();
 
-      db_list_3_1.sort((a, b) {
-        return a.title.compareTo(b.title);
+      db_list_nonediting.sort((a, b) {
+        return b.createdOn.compareTo(a.createdOn);
       });
-      db_list_3_2.sort((a, b) {
-        return a.title.compareTo(b.title);
-      });
+      // db_list_1_2.sort((a, b) {
+      //   return a.title.compareTo(b.title);
+      // });
+      // db_list_2_1.sort((a, b) {
+      //   return a.title.compareTo(b.title);
+      // });
+      // db_list_2_2.sort((a, b) {
+      //   return a.title.compareTo(b.title);
+      // });
 
-      db_list = db_list_editing +
-          db_list_3_1 +
-          db_list_2_1 +
-          db_list_1_1 +
-          db_list_3_2 +
-          db_list_2_2 +
-          db_list_1_2;
+      // db_list_3_1.sort((a, b) {
+      //   return a.title.compareTo(b.title);
+      // });
+      // db_list_3_2.sort((a, b) {
+      //   return a.title.compareTo(b.title);
+      // });
+
+      db_list = db_list_editing + db_list_nonediting;
+      // db_list_3_1 +
+      // db_list_2_1 +
+      // db_list_1_1 +
+      // db_list_3_2 +
+      // db_list_2_2 +
+      // db_list_1_2;
 
       list_count = db_list.length;
     });
   }
 
   void _refreshitems() {
-    print('refreshing db my man');
-
     setState(() {
       List<DataBase> db_list_editing = db.values
           .where((element) => element.edited == true)
           .toList()
           .cast<DataBase>();
 
-      List<DataBase> db_list_1_1 = db.values
-          .where((element) =>
-              element.level == 0 &&
-              element.edited == false &&
-              element.check == false)
-          .toList()
-          .cast<DataBase>();
-      List<DataBase> db_list_1_2 = db.values
-          .where((element) =>
-              element.level == 0 &&
-              element.edited == false &&
-              element.check == true)
-          .toList()
-          .cast<DataBase>();
-      List<DataBase> db_list_2_1 = db.values
-          .where((element) =>
-              element.level == 1 &&
-              element.edited == false &&
-              element.check == false)
-          .toList()
-          .cast<DataBase>();
-      List<DataBase> db_list_2_2 = db.values
-          .where((element) =>
-              element.level == 1 &&
-              element.edited == false &&
-              element.check == true)
-          .toList()
-          .cast<DataBase>();
-      List<DataBase> db_list_3_1 = db.values
-          .where((element) =>
-              element.level == 2 &&
-              element.edited == false &&
-              element.check == false)
-          .toList()
-          .cast<DataBase>();
-      List<DataBase> db_list_3_2 = db.values
-          .where((element) =>
-              element.level == 2 &&
-              element.edited == false &&
-              element.check == true)
+      List<DataBase> db_list_nonediting = db.values
+          .where((element) => element.edited == false)
           .toList()
           .cast<DataBase>();
 
-      db_list_1_1.sort((a, b) {
-        return a.title.compareTo(b.title);
-      });
-      db_list_1_2.sort((a, b) {
-        return a.title.compareTo(b.title);
-      });
-      db_list_2_1.sort((a, b) {
-        return a.title.compareTo(b.title);
-      });
-      db_list_2_2.sort((a, b) {
-        return a.title.compareTo(b.title);
-      });
+      // List<DataBase> db_list_1_1 = db.values
+      //     .where((element) =>
+      //         element.level == 0 &&
+      //         element.edited == false &&
+      //         element.check == false)
+      //     .toList()
+      //     .cast<DataBase>();
+      // List<DataBase> db_list_1_2 = db.values
+      //     .where((element) =>
+      //         element.level == 0 &&
+      //         element.edited == false &&
+      //         element.check == true)
+      //     .toList()
+      //     .cast<DataBase>();
+      // List<DataBase> db_list_2_1 = db.values
+      //     .where((element) =>
+      //         element.level == 1 &&
+      //         element.edited == false &&
+      //         element.check == false)
+      //     .toList()
+      //     .cast<DataBase>();
+      // List<DataBase> db_list_2_2 = db.values
+      //     .where((element) =>
+      //         element.level == 1 &&
+      //         element.edited == false &&
+      //         element.check == true)
+      //     .toList()
+      //     .cast<DataBase>();
+      // List<DataBase> db_list_3_1 = db.values
+      //     .where((element) =>
+      //         element.level == 2 &&
+      //         element.edited == false &&
+      //         element.check == false)
+      //     .toList()
+      //     .cast<DataBase>();
+      // List<DataBase> db_list_3_2 = db.values
+      //     .where((element) =>
+      //         element.level == 2 &&
+      //         element.edited == false &&
+      //         element.check == true)
+      //     .toList()
+      //     .cast<DataBase>();
 
-      db_list_3_1.sort((a, b) {
-        return a.title.compareTo(b.title);
+      db_list_nonediting.sort((a, b) {
+        return b.createdOn.compareTo(a.createdOn);
       });
-      db_list_3_2.sort((a, b) {
-        return a.title.compareTo(b.title);
-      });
+      // db_list_1_2.sort((a, b) {
+      //   return a.title.compareTo(b.title);
+      // });
+      // db_list_2_1.sort((a, b) {
+      //   return a.title.compareTo(b.title);
+      // });
+      // db_list_2_2.sort((a, b) {
+      //   return a.title.compareTo(b.title);
+      // });
 
-      db_list = db_list_editing +
-          db_list_3_1 +
-          db_list_2_1 +
-          db_list_1_1 +
-          db_list_3_2 +
-          db_list_2_2 +
-          db_list_1_2;
+      // db_list_3_1.sort((a, b) {
+      //   return a.title.compareTo(b.title);
+      // });
+      // db_list_3_2.sort((a, b) {
+      //   return a.title.compareTo(b.title);
+      // });
+
+      db_list = db_list_editing + db_list_nonediting;
+      // db_list_3_1 +
+      // db_list_2_1 +
+      // db_list_1_1 +
+      // db_list_3_2 +
+      // db_list_2_2 +
+      // db_list_1_2;
 
       list_count = db_list.length;
     });
 
-    print('start');
-
-    db_list.forEach((element) {
-      print(element.title);
-      print(element.edited);
-      print("edited should be false");
-    });
-
-    print('end');
+    db_list.forEach((element) {});
   }
 
   // void _del(DataBase db_item) {
@@ -381,15 +358,10 @@ class _MyHomePageState extends State<MyHomePage> {
   // }
 
   void _del(String titl, int leve) {
-    print('eeee');
-    print(titl);
-    print(level);
     var _task = db.values
         .where((element) => element.title == titl && element.level == leve)
         .first;
     _task.delete();
-
-    print('ojo');
 
     _refreshitems();
   }
@@ -402,18 +374,7 @@ class _MyHomePageState extends State<MyHomePage> {
             element.check == chec &&
             element.edited == false)
         .first;
-    _task.delete();
-
-    print('nect');
-
-    var new_data = DataBase(
-      title: titl,
-      check: !chec,
-      edited: false,
-      level: leve,
-    );
-
-    db.add(new_data);
+    _task.check = !chec;
 
     _refreshitems();
   }
@@ -487,237 +448,184 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _createList() {
-    return Container(
-      margin: const EdgeInsets.only(top: 0),
-      // child: SingleChildScrollView(
-      child: ListView.builder(
-        scrollDirection: Axis.vertical,
-        physics: const BouncingScrollPhysics(),
-        // separatorBuilder: (context, index) => const Divider(
-        // color: Colors.white,
-        // ),
-        // key: Key('myList'),
-        itemCount: list_count,
-        itemBuilder: (BuildContext context, int index) {
-          if (!db_list[index].edited) {
-            if (db_list[index].check) {
-              return Dismissible(
-                key: UniqueKey(),
-                onDismissed: ((direction) => {
-                      _del(db_list[index].title, db_list[index].level),
-                    }),
-                child: Container(
-                  // width: 10,
-                  // height: 10,
-                  margin:
-                      const EdgeInsets.only(left: 30, right: 30, bottom: 20),
-                  // decoration: BoxDecoration(
-                  //   // border: Border.all(color: Colors.black),
-                  //   borderRadius: BorderRadius.circular(10),
-                  //   gradient: _tilecol(db_list[index].level),
-                  // ),
-                  //
-                  // child:
-                  // Text(db_list[index].title),
-                  // child:
-                  child: ListTile(
-                    title: Text(
-                      db_list[index].title,
-                      style: TextStyle(
-                        fontFamily: 'custom',
-                        decoration: TextDecoration.lineThrough,
-                        fontSize: 25,
-                        color: Colors.black.withOpacity(0.4),
-                      ),
+    return ListView.builder(
+      scrollDirection: Axis.vertical,
+      physics: const BouncingScrollPhysics(),
+      itemCount: list_count,
+      itemBuilder: (BuildContext context, int index) {
+        if (!db_list[index].edited) {
+          if (db_list[index].check) {
+            return Dismissible(
+              key: UniqueKey(),
+              onDismissed: ((direction) => {
+                    _del(db_list[index].title, db_list[index].level),
+                  }),
+              child: Container(
+                margin: const EdgeInsets.only(left: 30, right: 30, bottom: 20),
+                child: ListTile(
+                  title: Text(
+                    db_list[index].title,
+                    style: TextStyle(
+                      fontFamily: 'custom',
+                      decoration: TextDecoration.lineThrough,
+                      fontSize: 25,
+                      color: Constants.ForegroundColor12,
                     ),
-                    onTap: () {
-                      setState(() {
-                        // db_list[index].check = !db_list[index].check;
-                        _change_check(db_list[index].title,
-                            db_list[index].level, db_list[index].check);
-                      });
-                    },
                   ),
+                  onTap: () {
+                    setState(() {
+                      _change_check(db_list[index].title, db_list[index].level,
+                          db_list[index].check);
+                    });
+                  },
                 ),
-              );
-            } else {
-              return Dismissible(
-                key: UniqueKey(),
-                onDismissed: ((direction) => {
-                      print('uiui'),
-                      _del(db_list[index].title, db_list[index].level),
-                      print('oioi'),
-                    }),
-                child: Container(
-                  // height: 10,
-                  // width: 10,
-                  margin:
-                      const EdgeInsets.only(left: 30, right: 30, bottom: 20),
-                  decoration: BoxDecoration(
-                    // border: Border.all(color: Colors.black),
-                    borderRadius: BorderRadius.circular(10),
-                    gradient: _tilecol(db_list[index].level),
-                  ),
-                  child: ListTile(
-                    // tileColor: _tilecol(db_list[index].level),
-                    title: Text(
-                      db_list[index].title,
-                      style: const TextStyle(
-                        fontFamily: 'custom',
-                        fontSize: 25,
-                        color: Colors.white,
-                      ),
-                    ),
-                    onTap: () {
-                      setState(() {
-                        // db_list[index].check = !db_list[index].check;
-                        print(index);
-                        _change_check(db_list[index].title,
-                            db_list[index].level, db_list[index].check);
-                      });
-                    },
-                  ),
-                  // Text(db_list[index].title),
-                ),
-              );
-            }
+              ),
+            );
           } else {
-            return ListTile(
-              title: Container(
-                  child: Column(
-                children: [
-                  TextField(
-                    controller: titleController,
-                    decoration: const InputDecoration(
-                      border: const OutlineInputBorder(),
-                      labelText: 'Type your task',
-                    ),
-                    onChanged: (text) {
-                      setState(() {
-                        title = text;
-                        //fullName = nameController.text;
-                      });
-                    },
-                  ),
-                  Container(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          child: Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.catching_pokemon_sharp),
-                                color: _iconcol(level),
-                                onPressed: () {
-                                  setState(() {
-                                    level += 1;
-                                    if (level > 2) {
-                                      level = 0;
-                                    }
-                                  });
-
-                                  _refreshitems();
-                                },
-                              ),
-                              // Text(
-                              //   level.toString(),
-                              // ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.save_rounded),
-                          onPressed: () {
-                            if (title == "") {
-                              print('fill something bich');
-                            } else {
-                              print('huhu');
-                              print(title);
-                              print(level);
-
-                              setState(() {
-                                new_elem = !new_elem;
-
-                                // db_list[index].title = title;
-                                // db_list[index].edited = false;
-                                // db_list[index].check = false;
-                                // db_list[index].level = level;
-
-                                // db.putAt(index, db_list[index]);
-
-                                DataBase new_data = DataBase(
-                                    title: title,
-                                    edited: false,
-                                    check: false,
-                                    level: level);
-
-                                db.add(new_data);
-
-                                titleController.clear();
-                              });
-
-                              print(title);
-                              fetch_db();
-                            }
-
-                            _refreshitems();
-                          },
-                        ),
-                      ],
+            return Dismissible(
+              key: UniqueKey(),
+              onDismissed: ((direction) => {
+                    _del(db_list[index].title, db_list[index].level),
+                  }),
+              child: Container(
+                // height: 10,
+                // width: 10,
+                margin: const EdgeInsets.only(left: 30, right: 30, bottom: 20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: darktheme ? Constants.ForegroundColor2 : Constants.ForegroundColor1,
+                ),
+                child: ListTile(
+                  title: Text(
+                    db_list[index].title,
+                    style: const TextStyle(
+                      fontFamily: 'custom',
+                      fontSize: 25,
+                      color: Colors.white,
                     ),
                   ),
-                ],
-              )),
-
-              // trailing: Checkbox(
-              //   value: db_list[index].check,
-              //   onChanged: (bool? value) {
-              //     setState(() {
-              //       db_list[index].check = value;
-              //       // db.put(index, db_list[index]);
-              //     });
-              //   },
-              // ),
-              onTap: () {
-                setState(() {
-                  if (db_list[index].check) {
-                    db_list[index].check = false;
-                  }
-                  db.putAt(index, db_list[index]);
-                });
-              },
+                  onTap: () {
+                    setState(() {
+                      // db_list[index].check = !db_list[index].check;
+                      _change_check(db_list[index].title, db_list[index].level,
+                          db_list[index].check);
+                    });
+                  },
+                ),
+                // Text(db_list[index].title),
+              ),
             );
           }
-        },
-        shrinkWrap: true,
-      ),
-      // ),
+        } else {
+          return ListTile(
+            title: Container(
+                child: Column(
+              children: [
+                TextField(
+                  controller: titleController,
+                  style: const TextStyle(
+                    color: Colors.white,
+                  ),
+                  decoration: const InputDecoration(
+                    labelStyle: TextStyle(color: Colors.white54),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.white,
+                        width: 1,
+                      ),
+                    ),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.white,
+                        width: 1,
+                      ),
+                    ),
+                    labelText: 'Type your task',
+                    iconColor: Colors.white,
+                    fillColor: Colors.white,
+                  ),
+                  onChanged: (text) {
+                    setState(() {
+                      title = text;
+                    });
+                  },
+                ),
+                Container(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        child: Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.catching_pokemon_sharp),
+                              color: Colors.white,
+                              onPressed: () {
+                                setState(() {
+                                  level += 1;
+                                  if (level > 2) {
+                                    level = 0;
+                                  }
+                                });
+
+                                _refreshitems();
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.save_rounded),
+                        color: Colors.white,
+                        onPressed: () {
+                          if (title == "") {
+                          } else {
+                            setState(() {
+                              new_elem = !new_elem;
+
+                              DataBase new_data = DataBase(
+                                title: title,
+                                edited: false,
+                                check: false,
+                                level: level,
+                                createdOn: DateTime.now(),
+                                // year: year,
+                                // month: month,
+                                // date: date,
+                              );
+
+                              db.add(new_data);
+
+                              titleController.clear();
+                            });
+
+                            fetch_db();
+                          }
+
+                          _refreshitems();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            )),
+            onTap: () {
+              setState(() {
+                if (db_list[index].check) {
+                  db_list[index].check = false;
+                }
+                db.putAt(index, db_list[index]);
+              });
+            },
+          );
+        }
+      },
+      shrinkWrap: true,
     );
   }
 
   void _delelement() {
-    print('hihi');
-    print(title);
-    print(level);
-
-    // var _task = db.values
-    //     .where((element) => element.title == title && element.level == level)
-    //     .first;
-    // _task.delete();
-
-    // List<DataBase> newdb_list = [];
-
-    // for (int i = 0; i < list_count; i++) {
-    //   if (db_list[i].title != title && db_list[i].level != level) {
-    //     newdb_list.add(db_list[i]);
-    //   }
-    // }
-
-    // setState(() {
-    //   db_list = newdb_list;
-    // });
-
     level = 0;
     titleController.text = "";
     new_elem = !new_elem;
@@ -727,13 +635,15 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _newelement() {
-    print('hmm');
-
     var new_data = DataBase(
       title: "",
       check: false,
       edited: true,
       level: 1,
+      createdOn: DateTime.now(),
+      // year: year,
+      // month: month,
+      // date: date,
     );
 
     db.add(new_data);
@@ -744,17 +654,6 @@ class _MyHomePageState extends State<MyHomePage> {
       level = 0;
     });
 
-    // db_list = db.values
-    //     // .where((element) => element.edited == false)
-    //     .toList()
-    //     .cast<DataBase>();
-
-    // db_list.forEach((element) {
-    //   print(element.title);
-    // });
-
-    print('sad');
-
     _refreshitems();
   }
 
@@ -762,6 +661,8 @@ class _MyHomePageState extends State<MyHomePage> {
   double curve_height = 40;
 
   ItemScrollController _scrollController = ItemScrollController();
+
+  bool darktheme = false;
 
   @override
   Widget build(BuildContext context) {
@@ -771,106 +672,129 @@ class _MyHomePageState extends State<MyHomePage> {
         children: [
           Container(
             height: MediaQuery.of(context).padding.top,
-            color: const Color(0xff4044c9),
+            color: darktheme ? Constants.BackgroundColor2 : Constants.BackgroundColor1,
           ),
           Container(
-            // margin: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+            height: 40,
             width: double.infinity,
-            height: 60,
-            color: const Color(0xff4044c9),
-            alignment: Alignment.center,
-            child: Center(
-              child: Container(
-                width: double.infinity,
-                margin: const EdgeInsets.only(left: 30, right: 30),
-                child: Row(
-                  children: [
-                    Text(
-                      datetoday,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        color: Colors.white,
+            color: darktheme ? Constants.BackgroundColor2 : Constants.BackgroundColor1,
+            alignment: Alignment.centerRight,
+            child: Container(
+              height: 35,
+              width: 80,
+              // decoration:
+              //     BoxDecoration(border: Border.all(color: Colors.white)),
+              child: Row(
+                children: <Widget>[
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        darktheme = true;
+                        
+                      });
+                    },
+                    child: Container(
+                      height: 30,
+                      width: 30,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                            color:
+                                darktheme ? Colors.white : Colors.transparent),
+                        color: Constants.ForegroundColor2,
                       ),
                     ),
-                    // SizedBox(
-                    //   width:
-                    //       MediaQuery.of(context).size.width - 30 - 30 - 90 - 30,
-                    // ),
-                    IconButton(
-                      icon: new_elem
-                          ? const Icon(Icons.delete_outline_outlined)
-                          : const Icon(Icons.add_circle_outline_outlined),
-                      color: Colors.white,
-                      onPressed: () {
-                        print('jiji');
-                        if (new_elem) {
-                          _delelement();
-                        } else {
-                          _newelement();
-                        }
-                      },
+                  ),
+                  const SizedBox(
+                    height: 30,
+                    width: 10,
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        darktheme = false;
+                      });
+                    },
+                    child: Container(
+                      height: 30,
+                      width: 30,
+                      decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Constants.ForegroundColor1,
+                          border: Border.all(
+                            color:
+                                darktheme ? Colors.transparent : Colors.white,
+                          )),
                     ),
-                  ],
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                ),
-                height: 40,
+                  ),
+                ],
               ),
             ),
           ),
+          // Container(
+          //   width: double.infinity,
+          //   height: 60,
+          //   color: Constants.BackgroundColor1,
+          //   child: Center(
+          //     child: Container(
+          //       width: double.infinity,
+          //       margin: const EdgeInsets.only(left: 30, right: 30),
+          //       child: Row(
+          //         children: [
+          //           const Text(
+          //             "Hola",
+          //             style: TextStyle(
+          //               fontSize: 20,
+          //               color: Colors.white,
+          //             ),
+          //           ),
+          //           IconButton(
+          //             icon: new_elem
+          //                 ? const Icon(Icons.delete_outline_outlined)
+          //                 : const Icon(Icons.add_circle_outline_outlined),
+          //             color: Colors.white,
+          //             onPressed: () {
+          //               if (new_elem) {
+          //                 _delelement();
+          //               } else {
+          //                 _newelement();
+          //               }
+          //             },
+          //           ),
+          //         ],
+          //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //       ),
+          //       height: 40,
+          //     ),
+          //   ),
+          // ),
           Container(
-            height: 50,
-            color: const Color(0xff4044c9),
-            child: Center(
-              child: ScrollablePositionedList.builder(
-                itemScrollController: _scrollController,
-                itemCount: _myList.length,
-                itemBuilder: (context, index) {
-                  return _myList[index];
-                },
-              ),
-            ),
-// _scrollController.scrollTo(index: 150, duration: Duration(seconds: 1));),
-          ),
-          Expanded(
-            child: Stack(children: [
-              Container(
-                height: 30,
-                width: double.infinity,
-                alignment: Alignment.centerLeft,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(
-                      height: curve_height,
-                      width: curve_width,
-                      // color: Colors.white,
-                      child: CustomPaint(
-                        size: Size(
-                            curve_width,
-                            (curve_width * 0.5)
-                                .toDouble()), //You can Replace [WIDTH] with your desired width for Custom Paint and height will be calculated automatically
-                        painter: RPSCustomPainter(),
-                      ),
-                    ),
-                    SizedBox(
-                      height: curve_height,
-                      width: curve_width,
-                      // color: Colors.white,
-                      child: CustomPaint(
-                        size: Size(
-                            curve_width,
-                            (curve_width * 0.5)
-                                .toDouble()), //You can Replace [WIDTH] with your desired width for Custom Paint and height will be calculated automatically
-                        painter: RPSCustomPainterright(context),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              _createList(),
-            ]),
+            color: darktheme ? Constants.BackgroundColor2 : Constants.BackgroundColor1,
+            margin: const EdgeInsets.only(top: 0),
+            height: MediaQuery.of(context).size.height -
+                MediaQuery.of(context).padding.top -
+                60,
+            child: _createList(),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: new_elem
+            ? const Icon(
+                Icons.delete,
+                color: Colors.white,
+              )
+            : const Icon(
+                Icons.add,
+                color: Colors.white,
+              ),
+        onPressed: () {
+          if (new_elem) {
+            _delelement();
+          } else {
+            _newelement();
+          }
+        },
       ),
     );
   }

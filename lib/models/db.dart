@@ -17,18 +17,25 @@ class DataBase extends HiveObject {
   late int level; //1, 2, 3 -> easy, medium, hard
 
   @HiveField(4)
-  late int year; //2021 format
+  late DateTime createdOn;
 
-  @HiveField(5)
-  late int month; //05 format
+  // @HiveField(4)
+  // late int year; //2021 format
 
-  @HiveField(6)
-  late int date; //05 format
+  // @HiveField(5)
+  // late int month; //05 format
+
+  // @HiveField(6)
+  // late int date; //05 format
 
   DataBase({
     required this.title,
     required this.check,
     required this.edited,
     required this.level,
+    required this.createdOn,
+    // required this.date,
+    // required this.month,
+    // required this.year,
   });
 }

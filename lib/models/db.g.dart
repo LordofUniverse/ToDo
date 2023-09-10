@@ -17,20 +17,21 @@ class DataBaseAdapter extends TypeAdapter<DataBase> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return DataBase(
-      title: fields[0] as String,
-      check: fields[1] as bool,
-      edited: fields[2] as bool,
-      level: fields[3] as int,
-    )
-      ..year = fields[4] as int
-      ..month = fields[5] as int
-      ..date = fields[6] as int;
+        title: fields[0] as String,
+        check: fields[1] as bool,
+        edited: fields[2] as bool,
+        level: fields[3] as int,
+        createdOn: fields[4] as DateTime
+        // year: fields[4] as int,
+        // month: fields[5] as int,
+        // date: fields[6] as int,
+        );
   }
 
   @override
   void write(BinaryWriter writer, DataBase obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.title)
       ..writeByte(1)
@@ -40,11 +41,12 @@ class DataBaseAdapter extends TypeAdapter<DataBase> {
       ..writeByte(3)
       ..write(obj.level)
       ..writeByte(4)
-      ..write(obj.year)
-      ..writeByte(5)
-      ..write(obj.month)
-      ..writeByte(6)
-      ..write(obj.date);
+      ..write(obj.createdOn);
+    // ..write(obj.year)
+    // ..writeByte(5)
+    // ..write(obj.month)
+    // ..writeByte(6)
+    // ..write(obj.date);
   }
 
   @override
